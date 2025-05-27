@@ -21,3 +21,7 @@ Repozytorium ćwiczeń z projektów ML wykonywanych zgodnie z filozofią tidymod
 123
 
 ## branch
+
+1) tworzenie branch z poziomu rstudio
+2) wysyłanie zatwierdzenień
+3) 

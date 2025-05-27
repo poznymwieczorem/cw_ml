@@ -7,5 +7,7 @@ library(tidyverse)
 
 ggplot(mtcars, aes(disp, mpg)) +
   geom_point() +
-  geom_smoorh() +
+  geom_smooth() +
   theme_bw()
+
+# tutaj trzeba dopisać bardzo trudny kod
