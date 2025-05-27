@@ -1,5 +1,5 @@
 ---
-title: "TEST"
+title: "Ćwiczenia z ML"
 author: "Fabian Wieczorek"
 format: gfm
 ---
