@@ -11,3 +11,9 @@ ggplot(mtcars, aes(disp, mpg)) +
   theme_bw()
 
 # tutaj trzeba dopisać bardzo trudny kod
+
+gglpot(mtcars, aes(disp, mpg)) +
+  plot() +
+  geom_smooth() +
+  theme_bw() +
+  
