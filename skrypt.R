@@ -7,5 +7,13 @@ library(tidyverse)
 
 ggplot(mtcars, aes(disp, mpg)) +
   geom_point() +
-  geom_smoorh() +
+  geom_smooth() +
   theme_bw()
+
+# tutaj trzeba dopisać bardzo trudny kod
+
+gglpot(mtcars, aes(disp, mpg)) +
+  plot() +
+  geom_smooth() +
+  theme_bw() +
+  
