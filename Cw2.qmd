@@ -136,7 +136,6 @@ rec <- recipe(ozone ~ ., data = train_data) |>
   step_holiday(date,
                holidays = timeDate::listHolidays("US"),  
                keep_original_cols = FALSE) |>
-  step_rm(nox) |> 
   step_dummy(all_nominal_predictors()) |>
   step_zv(all_predictors()) |>  
   step_YeoJohnson(all_numeric_predictors()) |> 
@@ -173,8 +172,34 @@ logi_fit <-
 
 rec |> summary()
 ```
+## Prognozowanie z workflow
+
+```{r}
+predict(logi_fit, test_data)
+```
 
 
+```{r}
+predict(logi_fit, test_data, type='prob')
+```
 
+```{r}
+pred_test <- 
+  augment(logi_fit, test_data) |> 
+  select(-ws,
+         -wd,
+         -no2,
+         -pm10,
+         -so2,
+         -co,
+         -pm25)
+pred_test
+```
+
+```{r}
+pred_test |> 
+  roc_curve(truth = ozone, .pred_Niskie) |> 
+  autoplot()
+```
 
 
