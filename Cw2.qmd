@@ -118,3 +118,26 @@ Dla regresji logistycznej teoretycznie nie jest konieczna, ale warto ją wykona�
 * dużych róźnic w skali
 * w połączeniu z niektórymi metodami selekcji zmiennych
 * wymaga przy użyciu klasyfikatoró SVN i KNN
+
+## Podzielenie zbioru danych
+
+```{r}
+split <- initial_split(air, prop = 3/4)
+train_data <- training(split)
+test_data <- testing(split)
+```
+
+## Izolacja danych z `date`
+
+```{r}
+rec <- recipe(ozone ~ ., data = train_data) |>
+  update_role(date, new_role = "ID") |>  
+  step_date(date, features = c("dow", "month")) |>  
+  step_holiday(date,
+               holidays = timeDate::listHolidays("US"),  
+               keep_original_cols = FALSE) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_zv(all_predictors()) |>  
+  step_normalize(all_numeric_predictors())
+```
+
