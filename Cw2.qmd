@@ -138,6 +138,26 @@ rec <- recipe(ozone ~ ., data = train_data) |>
                keep_original_cols = FALSE) |>
   step_dummy(all_nominal_predictors()) |>
   step_zv(all_predictors()) |>  
+  step_YeoJohnson(all_numeric_predictors()) |> 
   step_normalize(all_numeric_predictors())
+```
+
+## Model regresji logistycznej
+
+```{r}
+lr_mod <- 
+  logistic_reg() |> 
+  set_engine("glm")
+```
+
+## Work Flow
+
+```{r}
+logi_work <- 
+  workflow() |> 
+  add_model(lr_mod) |> 
+  add_recipe(rec)
+
+logi_work
 ```
 
