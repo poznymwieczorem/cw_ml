@@ -136,10 +136,13 @@ rec <- recipe(ozone ~ ., data = train_data) |>
   step_holiday(date,
                holidays = timeDate::listHolidays("US"),  
                keep_original_cols = FALSE) |>
+  step_rm(nox) |> 
   step_dummy(all_nominal_predictors()) |>
   step_zv(all_predictors()) |>  
   step_YeoJohnson(all_numeric_predictors()) |> 
   step_normalize(all_numeric_predictors())
+
+rec |> summary()
 ```
 
 ## Model regresji logistycznej
@@ -160,4 +163,18 @@ logi_work <-
 
 logi_work
 ```
+
+## Uczenie modelu
+
+```{r}
+logi_fit <- 
+  logi_work |> 
+  fit(data = train_data)
+
+rec |> summary()
+```
+
+
+
+
 
