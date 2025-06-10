@@ -51,7 +51,39 @@ air[sample(1:nrow(air), size = 300, replace = F),] |>
 
 Dane wydają się mocno skorelowane.
 
+Wykres stężenia ozonu w czasie.
 
+```{r}
+air |> 
+  ggplot(aes(date, o3)) +
+  geom_line()+
+  theme_bw()
+```
 
+Przyjmujemy założenie, żę stępnie ozonu jest wysokie gdy przekracza 10 mikrogramów na metr sześcienny, a niskie jest poniżej tej wartości.
+
+## Przetwarzanie danych
+
+Użyto funckji `cut` do przekształcenia zmiennej ilościowej na jakościową.
+
+```{r}
+air |> 
+  pull(o3) |> 
+  range()
+```
+```{r}
+air <- 
+  air |> 
+  mutate(ozone =cut(
+    o3,
+    breaks = c(-0.1, 10, 53),
+    labels = c("Niskie", "Wysokie")
+  ))
+```
+
+Check:
+```{r}
+air |> count(ozone)
+```
 
 
