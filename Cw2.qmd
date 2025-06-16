@@ -137,7 +137,8 @@ rec <- recipe(ozone ~ ., data = train_data) |>
                holidays = timeDate::listHolidays("US"),  
                keep_original_cols = FALSE) |>
   step_dummy(all_nominal_predictors()) |>
-  step_zv(all_predictors()) |>  
+  step_zv(all_predictors()) |> 
+  step_rm(nox) |> 
   step_YeoJohnson(all_numeric_predictors()) |> 
   step_normalize(all_numeric_predictors())
 
