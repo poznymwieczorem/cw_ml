@@ -2,6 +2,7 @@
 title: "Cw1"
 author: "Fabian Wieczorek"
 format: html
+self-contained: true
 ---
 
 ## Biblioteki
@@ -10,7 +11,7 @@ library(tidymodels)
 library(parsnip)
 library(GGally)
 library(broom)
-
+library(dotwhisker)
 ```
 
 ## Zestaw danych
@@ -76,6 +77,48 @@ Lepszy sposób wizoalizacji danych:
 lm_fit |> tidy(conf.int = T)
 ```
 
+Wygenerowanie wykresu kropek i wąsów naszych wyników regresji za pomocą pakietu dotwisker.
+
+```{r}
+lm_fit |> 
+  tidy() |> 
+  dwplot(vline = geom_vline(xintercept = 0, color = "grey50", linetype = 2), 
+         dot_args = list(size = 2, color = "black"), 
+         whisker_args = list(color = "black")) +
+  theme_bw()
+```
+
+Same w sobie miesiące mają bardzo mały wpływ. Jednak zmiany podczas miesięcy duży.
+
+## Predykcja danych
+
+Przeprowadzono teraz predykcje średniego steżenia ozonu w kolejnych miesiącach
+
+```{r}
+new_points <- expand.grid(solar.r = seq(0, 340, 40),
+                          month = c('5', '6','7', '8', '9'))
+```
 
 
+```{r}
+mean_pred <- predict(object = lm_fit, new_data = new_points)
+
+conf_pred <- predict(object = lm_fit, new_data = new_points, type = "conf_int")
+
+lm_pred <- 
+  new_points |> 
+  bind_cols(mean_pred) |> 
+  bind_cols(conf_pred)
+
+lm_pred |>
+  ggplot(aes(x = month,
+             y = .pred)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = .pred_lower,
+                    ymax = .pred_upper),
+                width = 0.2) +
+  facet_wrap(~ solar.r) +
+  theme_bw() +
+  labs(y = "ozone c")
+```
 
