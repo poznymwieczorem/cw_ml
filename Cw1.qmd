@@ -1,0 +1,81 @@
+---
+title: "Cw1"
+author: "Fabian Wieczorek"
+format: html
+---
+
+## Biblioteki
+```{r}
+library(tidymodels)
+library(parsnip)
+library(GGally)
+library(broom)
+
+```
+
+## Zestaw danych
+```{r}
+colnames(airquality) <- tolower(colnames(airquality))
+
+air <- 
+  airquality |> 
+  as_tibble() |> 
+  na.omit() |> 
+  select(-day) |> 
+  mutate(month = factor(month))
+  
+```
+`as_tible` - konwersja danych do formatu tible
+`na.omit` - usunięcie obserwacji z brakiem danych
+`select(-day)` - usunięcie kolumny day
+`mutate(month = factor(month))` - przekształcenie zmiennej 'month' w zmienną kategoryczną (czynnik)
+
+## Podląd struktury danych oraz zależności między zmiennymi
+```{r}
+air %>%
+  ggplot(aes(
+    x = solar.r,
+    y = ozone,
+    col = month,
+    group = month
+  )) +
+  geom_point() +
+  geom_smooth(method = lm, se = F) +
+  scale_color_viridis_d(option = "C", end = .9)
+```
+Przy niskim promieniowaniu słonecznym stężenie ozonu w powietrzu było jest niższe, wraz ze wzrostem promieniowania rośnie również ilość ozonu. 
+***
+Sprawdzenie braków danych
+
+```{r}
+air |> is.na() |> as_tibble() |> summarise_all(sum)
+```
+Nie posiadamy brakujących danych.
+
+## Dopasowanie modelu
+
+```{r}
+lm_mod <-  
+  linear_reg() |> 
+  set_engine("lm")
+```
+
+Model został swtworzony, a jego silnikiem została metoda najmniejszych kwadratów.
+
+Teraz przeprowadzono estymację modelu\
+
+```{r}
+lm_fit <- 
+  lm_mod |> 
+  fit(ozone ~ solar.r * month, data = air)
+lm_fit
+```
+Lepszy sposób wizoalizacji danych:
+
+```{r}
+lm_fit |> tidy(conf.int = T)
+```
+
+
+
+
