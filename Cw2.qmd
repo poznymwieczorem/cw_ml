@@ -1,0 +1,206 @@
+---
+title: "Cw2"
+format: html
+---
+
+## Biblioteki używane w ćwiczenniu
+
+```{r}
+library(tidymodels) 
+library(skimr) 
+library(GGally) 
+library(openair) 
+tidymodels_prefer()
+```
+
+***
+
+## Wczyatanie danych
+
+```{r}
+air <- mydata |> selectByDate(year = 2002)
+air |> skim()
+```
+
+***
+
+### Usuawanie brakujących danych
+
+```{r}
+air <- air |> na.omit()
+```
+
+***
+
+### Korelacja pomiędzy tlenkami azotu, a dwutlenkiem azotu
+
+```{r}
+set.seed(222)
+air[sample(1:nrow(air), size = 300, replace = F),] |> 
+  select(nox, no2) |> 
+  ggpairs()
+```
+
+```{r}
+library(ggpubr)
+# wykres regresji liniowej, do sprawdzenia danych 
+set.seed(222)
+air[sample(1:nrow(air), size = 300, replace = F),] |> 
+  select(nox, no2) |> 
+  ggplot(aes(nox, no2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = T, formula = y ~ x) + 
+  stat_cor(label.x = 10, label.y = 80) + 
+  stat_regline_equation(label.x = 10, label.y = 87) +
+  theme_bw()
+```
+
+Dane wydają się mocno skorelowane.
+
+***
+
+Wykres stężenia ozonu w czasie.
+
+```{r}
+air |> 
+  ggplot(aes(date, o3)) +
+  geom_line()+
+  theme_bw()
+```
+
+Przyjmujemy założenie, żę stępnie ozonu jest wysokie gdy przekracza 10 mikrogramów na metr sześcienny, a niskie jest poniżej tej wartości.
+
+***
+
+## Przetwarzanie danych
+
+Użyto funckji `cut` do przekształcenia zmiennej ilościowej na jakościową.
+
+```{r}
+air |> 
+  pull(o3) |> 
+  range()
+```
+```{r}
+air <- 
+  air |> 
+  mutate(ozone =cut(
+    o3,
+    breaks = c(-0.1, 10, 53),
+    labels = c("Niskie", "Wysokie")
+  ))
+```
+
+Check:
+```{r}
+air |> count(ozone)
+```
+
+***
+
+## Które zmienne uwzględnić w modelu?
+
+Przez silną korelację między parametrami `nox` i `no2` nie ma sensu uwzględniać obu jednocześnie. Wybrano jeden no2, jest on mniej podatny na zmienność emisji z pojazdów.
+
+Z parametru `date` można wyizolować month, hour, weekdey, season.
+
+`pm10`, `pm25`, `so2`, `co` potencjalnie istotne informacje o zanieczyszczeniach mogą być powiązane ze stężniem ozonu w powietrzu.
+
+`temp`, `rh`, `ws` często mają wpływ na poziom ozonu -> należy uwzględnić.
+
+## Box-Cox czy Yeo-Johnson?
+
+Box-Cox działa tylko dla danych dodatnich, drugi za to przyjmuje również dane zawierającce zera i liczby ujemne. Zalecam użycie YoeJohnson do przekształcenia danych liczbowych.
+
+## Normalizacja danych czy potrzebna?
+
+Dla regresji logistycznej teoretycznie nie jest konieczna, ale warto ją wykonać dla przykładowo:
+* dużych róźnic w skali
+* w połączeniu z niektórymi metodami selekcji zmiennych
+* wymaga przy użyciu klasyfikatoró SVN i KNN
+
+## Podzielenie zbioru danych
+
+```{r}
+split <- initial_split(air, prop = 3/4)
+train_data <- training(split)
+test_data <- testing(split)
+```
+
+## Izolacja danych z `date`
+
+```{r}
+rec <- recipe(ozone ~ ., data = train_data) |>
+  update_role(date, new_role = "ID") |>  
+  step_date(date, features = c("dow", "month")) |>  
+  step_holiday(date,
+               holidays = timeDate::listHolidays("US"),  
+               keep_original_cols = FALSE) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_zv(all_predictors()) |> 
+  step_rm(nox) |> 
+  step_YeoJohnson(all_numeric_predictors()) |> 
+  step_normalize(all_numeric_predictors())
+
+rec |> summary()
+```
+
+## Model regresji logistycznej
+
+```{r}
+lr_mod <- 
+  logistic_reg() |> 
+  set_engine("glm")
+```
+
+## Work Flow
+
+```{r}
+logi_work <- 
+  workflow() |> 
+  add_model(lr_mod) |> 
+  add_recipe(rec)
+
+logi_work
+```
+
+## Uczenie modelu
+
+```{r}
+logi_fit <- 
+  logi_work |> 
+  fit(data = train_data)
+
+rec |> summary()
+```
+## Prognozowanie z workflow
+
+```{r}
+predict(logi_fit, test_data)
+```
+
+
+```{r}
+predict(logi_fit, test_data, type='prob')
+```
+
+```{r}
+pred_test <- 
+  augment(logi_fit, test_data) |> 
+  select(-ws,
+         -wd,
+         -no2,
+         -pm10,
+         -so2,
+         -co,
+         -pm25)
+pred_test
+```
+
+```{r}
+pred_test |> 
+  roc_curve(truth = ozone, .pred_Niskie) |> 
+  autoplot()
+```
+
+
