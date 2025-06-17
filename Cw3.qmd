@@ -129,9 +129,41 @@ Jak można zauważyć las losowy wygenerował 500 drzew decyzyjnych. Ilość pr�
 Predycji dokonamy najpierw na zbiorze treningowym.
 
 ```{r}
-rf_pred
+rf_pred_train <- 
+  predict(rf_fit, new_data = train_data) |> 
+  bind_cols(predict(rf_fit, new_data = train_data, type = "prob")) |> 
+  bind_cols(train_data |> select(ozone))
+
+# Krzywa ROC
+rf_pred_train |> 
+  roc_curve(truth = ozone, .pred_Niskie) |> 
+  autoplot()
 ```
 
+Jak widać model jest totalnie przeuczony. Powodem tego może być nie usunięcie parametru nox.
+
+Sprawdźmy teraz pole pod krzywą ROC
+
+```{r}
+rf_pred_train |> 
+  roc_auc(truth = ozone, .pred_Niskie)
+```
+Pole wynosi 1 czyli wartość maksymalną.
+
+Sprawdźmy jeszcze dokładność.
+
+```{r}
+rf_pred_train |> 
+  accuracy(truth = ozone, .pred_class)
+```
+
+Model ma idealne zaklasyfikowanie danych na których się uczył.
+***
+Teraz zróbmy to samo na danych testowych, czyli takich których model nigdy nie widział.
+
+```{r}
+print(rf_pred_train)
+```
 
 
 
