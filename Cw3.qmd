@@ -162,9 +162,98 @@ Model ma idealne zaklasyfikowanie danych na których się uczył.
 Teraz zróbmy to samo na danych testowych, czyli takich których model nigdy nie widział.
 
 ```{r}
-print(rf_pred_train)
+rf_pred_test <- 
+  predict(rf_fit, new_data = test_data) |> 
+  bind_cols(predict(rf_fit, new_data = test_data, type = "prob")) |> 
+  bind_cols(test_data |> select(ozone))
+
+# Krzywa rock
+rf_pred_test |> 
+  roc_curve(truth = ozone, .pred_Niskie) |> 
+  autoplot()
 ```
 
+
+O dziwo model też bardzo dobrze sobie radzi na danych testowych
+
+```{r}
+rf_pred_test |> 
+  roc_auc(truth = ozone, .pred_Niskie)
+```
+
+```{r}
+rf_pred_test |> 
+  accuracy(truth = ozone, .pred_class)
+```
+## Wykorzysatnie różnych metod resamplingu
+
+Przygotowanie danych do resamplingu
+
+```{r}
+set.seed(123)
+folds_v5 <- vfold_cv(train_data, v = 5)
+folds_v10 <- vfold_cv(train_data, v = 10)
+folds_boot <- bootstraps(train_data, times = 30)
+```
+
+
+Przepis z poprzedniego ćwiczenia.
+
+```{r}
+rec <- recipe(ozone ~ ., data = train_data) |>
+  update_role(date, new_role = "ID") |>  
+  step_date(date, features = c("dow", "month")) |>  
+  step_holiday(date,
+               holidays = timeDate::listHolidays("US"),  
+               keep_original_cols = FALSE) |>
+  step_dummy(all_nominal_predictors()) |>
+  step_zv(all_predictors()) |> 
+  step_rm(nox) |> 
+  step_YeoJohnson(all_numeric_predictors()) |> 
+  step_normalize(all_numeric_predictors())
+```
+
+Workflow:
+
+```{r}
+rf_work <- 
+  workflow() |> 
+  add_model(rf_mod) |> 
+  add_recipe(rec)
+```
+
+Ocena przy pomocy 5-krotnej CV
+
+```{r}
+rf_rs_v5 <- fit_resamples(
+  rf_work,
+  resample = folds_v5,
+  metrics = metric_set(accuracy, roc_auc)
+)
+collect_metrics(rf_rs_v5)
+```
+
+Ocena przy pomocy 10-krotnej CV
+
+```{r}
+rf_rs_v10 <- fit_resamples(
+  rf_work,
+  resamples = folds_v10,
+  metrics = metric_set(accuracy, roc_auc)
+)
+collect_metrics(rf_rs_v10)
+```
+
+Ocena przy pomocy bootstrapu
+
+```{r}
+rf_rs_boot <- fit_resamples(
+  rf_work,
+  resamples = folds_boot,
+  metrics = metric_set(accuracy, roc_auc)
+)
+collect_metrics(rf_rs_boot)
+```
 
 
 
