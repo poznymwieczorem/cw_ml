@@ -10,7 +10,7 @@ library(tidymodels)
 library(parsnip)
 library(GGally)
 library(broom)
-
+library(dotwhisker)
 ```
 
 ## Zestaw danych
@@ -120,5 +120,5 @@ lm_pred |>
   labs(y = "ozone c")
 ```
 
-
+Wykonano predykcję średnich wartość stężenia ozonu w powietrzu.
 
