@@ -1,0 +1,89 @@
+---
+title: "Cw4"
+author: "Fabian Wieczorek"
+format: html
+---
+
+## Bibliteki używane pod czas ćwiczenia
+
+```{r}
+library(tidymodels)
+library(rpart.plot)
+library(vip)
+```
+
+Instalacja brakujących pakietów
+
+```{r}
+install.packages('rpart.plot')
+install.packages('vip')
+```
+
+## Wczytanie danych
+
+```{r}
+data("cells", package = "modeldata")
+cells
+```
+
+## Podział zbioru danych
+
+```{r}
+set.seed(123)
+split <- initial_split(data = cells |> select(-case),
+                       prop = 3/4,
+                       strata = class)
+train <- training(split)
+test <- testing(split)
+```
+
+
+## Optymalizacja hiper-parametrów
+
+```{r}
+tune_spec <- 
+  decision_tree(
+    cost_complexity = tune(),
+    tree_depth = tune(),
+    min_n = tune()) |> 
+  set_engine('rpart') |> 
+  set_mode("classification")
+
+tune_spec
+```
+
+## Siatka optymalizacji
+
+```{r}
+siatka <- grid_regular(cost_complexity(),
+                       tree_depth(),
+                       min_n(),
+                       levels = 5)
+siatka
+```
+
+
+```{r}
+siatka |> 
+  count(tree_depth)
+```
+```{r}
+siatka |> 
+  count(cost_complexity)
+```
+```{r}
+siatka |> 
+  count(min_n)
+```
+
+Prókowanie przy pomocy metody "cross-valid"
+
+```{r}
+set.seed(234)
+folds <- vfold_cv(train)
+```
+
+
+
+
+
