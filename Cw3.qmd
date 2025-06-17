@@ -101,8 +101,36 @@ dokładnie ten sam efekt.
 
 *Dane w przypadku algorytmu lasu losowego nie będą dodatkowo przetwarzane. Zobaczymy czy algorytm poradzi sobie na takich danych*
 
+## Model RF - random forest
 
+Metoda dopasowania użyta w modelu lasu losowego to `ranger`.
 
+```{r}
+rf_mod <- 
+  rand_forest() |> 
+  set_engine("ranger") |> 
+  set_mode("classification")
+```
+
+Las losowy do działa potrzebuje wykorzystać liczby pseudolosowe to zapoczątkowania budowania drzew decyzycjnych na losowych częściach zbioru treningowego. Po to zostaje ustawione ziarno w celu walidacji późniejszych prób i różnież by wyniki nie były zbyt "losowe" w przypadku wielokrotnego uruchamiania skryptu.
+
+```{r}
+set.seed(234)
+rf_fit <- 
+  rf_mod |> 
+  fit(ozone ~ ., data = train_data)
+rf_fit
+```
+
+Jak można zauważyć las losowy wygenerował 500 drzew decyzyjnych. Ilość próbek to 5666.
+
+### Predykcja w lesie losowym
+
+Predycji dokonamy najpierw na zbiorze treningowym.
+
+```{r}
+rf_pred
+```
 
 
 
