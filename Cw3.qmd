@@ -43,6 +43,68 @@ Usunięcia braków danych.
 air <- air |> na.omit()
 ```
 
+Oznaczanie wysokiego i niskiego stężenia ozonu w powietrzu.
+
+```{r}
+air <- 
+  air |> 
+  mutate(ozone =cut(
+    o3,
+    breaks = c(-0.1, 10, 53),
+    labels = c("Niskie", "Wysokie")
+  ))
+```
+
+Sprawdzenie wyniku poprzedniego działania.
+
+```{r}
+air |> count(ozone)
+```
+
+Działa poprawienie.
+
+## Podzielenie danych na treningowe i testowe
+
+```{r}
+set.seed(123)
+data_split <-  initial_split(air, prop = 3/4, strata = ozone)
+train_data <- training(data_split)
+test_data <- testing(data_split)
+```
+
+Sprawdzenie liczebność jak został podzielony zbiór danych.
+
+```{r}
+nrow(train_data); nrow(test_data)
+```
+
+Wygląda sensownie. Ciekawe czy funkcja robi shuffle?
+
+Sprawdzenie czy funkcja odpowiednio podzieliła ozone.
+
+```{r}
+test_data |> 
+  count(ozone) |> 
+  mutate(prop = n/sum(n))
+```
+
+Pięknie mamy udizał taki jak mniej więcej zakładaliśmy.
+
+Teraz to samo dla zbioru uczącego.
+
+```{r}
+train_data |> 
+  count(ozone) |> 
+  mutate(prop = n/sum(n))
+```
+dokładnie ten sam efekt.
+
+*Dane w przypadku algorytmu lasu losowego nie będą dodatkowo przetwarzane. Zobaczymy czy algorytm poradzi sobie na takich danych*
+
+
+
+
+
 
 
 
