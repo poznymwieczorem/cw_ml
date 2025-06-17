@@ -255,7 +255,61 @@ rf_rs_boot <- fit_resamples(
 collect_metrics(rf_rs_boot)
 ```
 
+## Regrasja liniowa
+
+Model regresji logistycznej
+
+```{r}
+lr_mod <- 
+  logistic_reg() |> 
+  set_engine("glm")
+```
+
+Work Flow
+
+```{r}
+logi_work <- 
+  workflow() |> 
+  add_model(lr_mod) |> 
+  add_recipe(rec)
+
+logi_work
+```
+
+Ocena przy pomocy 5-krotnej CV
+
+```{r}
+logi_rs_v5 <- fit_resamples(
+  logi_work,
+  resamples = folds_v5,
+  metrics = metric_set(accuracy, roc_auc)
+)
+collect_metrics(logi_rs_v5)
+```
+
+Ocena przy pomocy 10-krotnej CV
+
+```{r}
+logi_rs_v10 <- fit_resamples(
+  logi_work,
+  resamples = folds_v10,
+  metrics = metric_set(accuracy, roc_auc)
+)
+collect_metrics(logi_rs_v10)
+```
 
 
+Ocena przy pomocy bootstrapu
 
+```{r}
+logi_rs_boot <- fit_resamples(
+  logi_work,
+  resamples = folds_boot,
+  metrics = metric_set(accuracy, roc_auc)
+)
+collect_metrics(logi_rs_boot)
+```
 
+## Wnioski
+
+Zarówno regresja logistyczna, jak i las losowy osiągają dobre wyniki klasyfikacji, ale model lasu losowego ma wyższy AUC i dokładność. Wyniki uzyskane metodą bootstrapu mają większą zmienność, ale pokazują stabilność modelu względem losowych prób. 10-krotna CV daje stabilniejsze oszacowanie błędu niż 5-krotna CV. W przypadku tego zbioru lepszym wyborem jest las losowy, radzi sobie lepiej z dużą liczbą pradyktoró i interakcjami między nimi.
