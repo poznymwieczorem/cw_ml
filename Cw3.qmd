@@ -6,3 +6,45 @@ self-contained: true
 ---
 
 ## Biblioteki
+
+Bilioteki użyte w ćwiczeniu/lub przydatne.
+
+```{r}
+library(lubridate)
+library(ggpubr)
+library(tidymodels) 
+library(skimr) 
+library(GGally) 
+library(openair) 
+library(ranger)
+library(modeldata)
+library(tidymodels)
+tidymodels_prefer()
+```
+Instalacja biblioteki ranger
+```{r}
+install.packages('ranger')
+```
+## Wczytanie danych
+
+```{r}
+air <- mydata |> selectByDate(year = 2002)
+air |> skim()
+```
+
+Sprawdzenie braków danych.
+
+```{r}
+air |> is.na() |> as_tibble() |> summarise_all(sum)
+```
+Usunięcia braków danych.
+
+```{r}
+air <- air |> na.omit()
+```
+
+
+
+
+
+
